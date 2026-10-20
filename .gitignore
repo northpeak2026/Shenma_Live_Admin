@@ -1,6 +1,6 @@
 .DS_Store
 **/.DS_Store
 
-# Local audit captures are reference material, not application source.
-SMLive_Admin_Audit/screenshots/
-SMLive_Admin_Audit/screenshots.zip
+# Local audit material is not published.
+SMLive_Admin_Audit/
+github-*.png

@@ -16,6 +16,5 @@ GitHub Pages 地址：https://northpeak2026.github.io/Shenma_Live_Admin/
 ## 目录
 
 - `app-version-prototype/`：原型源码、需求文档与预览图。
-- `SMLive_Admin_Audit/admin-page-index.md`：历史页面走查索引。
 
-本地走查截图与压缩包不属于应用源码，通过 `.gitignore` 排除。
+历史页面走查文档、截图与压缩包仅保留在本地，通过 `.gitignore` 排除，不公开发布。
