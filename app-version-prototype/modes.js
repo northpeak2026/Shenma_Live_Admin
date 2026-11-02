@@ -14,9 +14,7 @@
   switcher.className = 'mode-switch';
   switcher.type = 'button';
   document.body.append(switcher);
-  const link = document.createElement('a');
-  link.className = 'doc-link';
-  document.querySelector('.breadcrumb').append(link);
+  const link = window.requirementsEntry;
   const encodeRoute = () => {
     const params = new URLSearchParams({mode,tab,req:selected});
     history.replaceState(null,'','#'+params);
@@ -33,7 +31,7 @@
     const r = entries.find(e => e.id === selected);
     const section = (title,body) => body ? `<section><h2>${title}</h2>${body}</section>` : '';
     const list = (items,ordered=false) => items?.length ? `<${ordered?'ol':'ul'}>${items.map(s=>`<li>${esc(s)}</li>`).join('')}</${ordered?'ol':'ul'}>` : '';
-    docs.querySelector('.doc-article').innerHTML = `<p class="doc-intro">系统管理 / App版本管理 / ${r.tab==='apk'?'APK管理':'App版本'}</p><h1 tabindex="-1">${esc(r.title)}</h1><div class="doc-meta">${esc(r.number)} · 整理更新：${esc(r.updated || roots[0].updated)}</div>${section('需求说明',`<p>${esc(r.description)}</p>`)}${section('操作流程',list(r.flow,true))}${section('字段说明',r.fields?`<div class="tablewrap"><table><thead><tr><th>字段</th><th>说明</th></tr></thead><tbody>${r.fields.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</tbody></table></div>`:'')}${section('校验规则',list(r.rules))}<div class="doc-actions">${r.id==='apk-upload'?'<button data-upload-test>验证上传边界状态</button>':''}<button class="primary" data-preview>查看对应原型 · ${r.tab==='apk'?'APK管理':'App版本'}</button></div>`;
+    docs.querySelector('.doc-article').innerHTML = `<p class="doc-intro">系统管理 / App版本管理 / ${r.tab==='apk'?'APK管理':'App版本'}</p><h1 tabindex="-1">${esc(r.title)}</h1><div class="doc-meta">${esc(r.number)} · 整理更新：${esc(r.updated || roots[0].updated)}</div>${section('需求说明',`<p>${esc(r.description || '该页面的需求描述待补充。')}</p>`)}${section('操作流程',list(r.flow,true))}${section('字段说明',r.fields?`<div class="tablewrap"><table><thead><tr><th>字段</th><th>说明</th></tr></thead><tbody>${r.fields.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</tbody></table></div>`:'')}${section('校验规则',list(r.rules))}<div class="doc-actions">${r.id==='apk-upload'?'<button data-upload-test>验证上传边界状态</button>':''}<button class="primary" data-preview>查看对应原型 · ${r.tab==='apk'?'APK管理':'App版本'}</button></div>`;
     if (docs.querySelector('[data-upload-test]')) docs.querySelector('[data-upload-test]').onclick = () => { openForm(); document.querySelectorAll('[data-document-only]').forEach(el=>el.hidden=false); };
     docs.querySelector('[data-preview]').onclick = () => { if(tab !== r.tab) setTab(r.tab); apply('prototype'); };
     docs.querySelectorAll('[data-entry]').forEach(a => {
