@@ -15,17 +15,28 @@
   switcher.type = 'button';
   document.body.append(switcher);
   const link = window.requirementsEntry;
+  const shortRoute = (view, entry = selected, target = tab) =>
+    view === 'docs' ? '#' + encodeURIComponent(entry) : target === 'apk' ? '#apk' : '#app';
   const encodeRoute = () => {
-    const params = new URLSearchParams({mode,tab,req:selected});
-    history.replaceState(null,'','#'+params);
+    history.replaceState(null, '', shortRoute(mode));
   };
   function route() {
-    const params = new URLSearchParams(location.hash.slice(1));
-    if (['docs','prototype'].includes(params.get('mode'))) mode = params.get('mode');
-    const entry = entries.find(r => r.id === params.get('req'));
-    if (entry) selected = entry.id;
-    const target = entry && mode === 'docs' ? entry.tab : params.get('tab');
-    if (['app','apk'].includes(target) && target !== tab) setTab(target);
+    const hash = location.hash.slice(1);
+    const params = new URLSearchParams(hash);
+    let target;
+    if (hash.includes('=')) {
+      // Compatibility with previously shared parameter-based links.
+      if (['docs','prototype'].includes(params.get('mode'))) mode = params.get('mode');
+      const entry = entries.find(r => r.id === params.get('req'));
+      if (entry) selected = entry.id;
+      target = entry && mode === 'docs' ? entry.tab : params.get('tab');
+    } else {
+      const entry = entries.find(r => encodeURIComponent(r.id) === hash);
+      if (entry) { mode = 'docs'; selected = entry.id; target = entry.tab; }
+      else if (hash === 'docs') { mode = 'docs'; target = entries.find(r => r.id === selected).tab; }
+      else if (hash === 'apk' || hash === 'app') { mode = 'prototype'; target = hash; }
+    }
+    if (['app','apk'].includes(target) && target !== tab) originalSetTab(target);
   }
   function renderArticle() {
     const r = entries.find(e => e.id === selected);
@@ -38,7 +49,7 @@
       if(a.dataset.entry===selected) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current');
     });
   }
-  docs.innerHTML = `<div class="docs-layout"><nav class="docs-toc" aria-label="需求目录"><h2>需求目录</h2>${roots.map(m=>`<details open><summary>${esc(m.title)}</summary>${m.children.map(f=>`<details open><summary>${esc(f.title)}</summary>${f.children.map(r=>`<a href="#${new URLSearchParams({mode:'docs',tab:r.tab,req:r.id})}" data-entry="${r.id}">${esc(r.number)} · ${esc(r.title)}</a>`).join('')}</details>`).join('')}</details>`).join('')}</nav><article class="doc-article" aria-label="需求正文"></article></div>`;
+  docs.innerHTML = `<div class="docs-layout"><nav class="docs-toc" aria-label="需求目录"><h2>需求目录</h2>${roots.map(m=>`<details open><summary>${esc(m.title)}</summary>${m.children.map(f=>`<details open><summary>${esc(f.title)}</summary>${f.children.map(r=>`<a href="${shortRoute('docs',r.id,r.tab)}" data-entry="${r.id}">${esc(r.number)} · ${esc(r.title)}</a>`).join('')}</details>`).join('')}</details>`).join('')}</nav><article class="doc-article" aria-label="需求正文"></article></div>`;
   docs.querySelectorAll('[data-entry]').forEach(a => a.onclick = event => {
     event.preventDefault(); selected = a.dataset.entry;
     const r = entries.find(e=>e.id===selected);
@@ -58,7 +69,7 @@
     switcher.innerHTML = `<span aria-hidden="true">${mode==='docs'?'▤':'◫'}</span><span class="current-mode">${mode==='docs'?'文档模式':'原型模式'}</span><span class="intent">${action}</span>`;
     switcher.setAttribute('aria-label',action); switcher.title=action;
     link.textContent = mode==='docs'?'查看对应原型 ↗':'查看对应需求 ↗';
-    link.href='#'+new URLSearchParams({mode:mode==='docs'?'prototype':'docs',tab,req:selected});
+    link.href=mode==='docs' ? shortRoute('prototype') : '#docs';
     if(mode==='docs') renderArticle();
     remember('sm-view-mode',mode); remember('sm-doc-entry',selected); encodeRoute();
   }
@@ -66,7 +77,7 @@
     if(entries.find(e=>e.id===selected)?.tab!==tab) selected=entries.find(e=>e.tab===tab).id;
   }
   switcher.onclick = () => { matchingEntry(); apply(mode==='docs'?'prototype':'docs'); };
-  link.onclick = event => { event.preventDefault(); matchingEntry(); apply(mode==='docs'?'prototype':'docs'); };
+  link.onclick = event => { event.preventDefault(); apply(mode==='docs'?'prototype':'docs'); };
   const originalSetTab = window.setTab;
   window.setTab = function(t) { originalSetTab(t); matchingEntry(); encodeRoute(); };
   window.addEventListener('hashchange',()=>{route();apply(mode);});
