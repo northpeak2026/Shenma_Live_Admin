@@ -15,33 +15,23 @@
   const link = document.createElement('a');
   link.className = 'doc-link';
   link.textContent = '查看对应需求 ↗';
-  link.href = '#mode=docs';
+  const scriptURL = document.currentScript.src;
+  const documentURL = new URL('../#docs', scriptURL);
+  link.href = documentURL.href;
   link.style.cssText = 'margin-left:auto;color:#7a89a4;font-size:12px;white-space:nowrap;flex-shrink:0';
   account.style.marginLeft = '0';
   account.before(link);
   window.requirementsEntry = link;
   // Pages with a full requirements renderer attach their own route handling.
   if (document.body.dataset.requirementsRenderer === 'full') return;
-  const main = document.querySelector('main');
-  const original = [...main.children].filter(el => !el.classList.contains('breadcrumb') && !el.classList.contains('footer'));
-  const docs = document.createElement('section');
-  docs.className = 'card';
-  docs.setAttribute('aria-label', '需求文档');
-  const title = document.title.split(' · ')[0];
-  const heading = document.createElement('h1');
-  heading.textContent = title;
-  const description = document.createElement('p');
-  description.textContent = '该页面的需求描述待补充。';
-  description.style.cssText = 'color:#737e90;line-height:1.8;margin-top:20px';
-  docs.append(heading, description);
-  main.querySelector('.footer').before(docs);
-  function render() {
-    const isDocs = new URLSearchParams(location.hash.slice(1)).get('mode') === 'docs';
-    original.forEach(el => { el.hidden = isDocs; });
-    docs.hidden = !isDocs;
-    link.textContent = isDocs ? '查看对应原型 ↗' : '查看对应需求 ↗';
-    link.href = isDocs ? '#mode=prototype' : '#mode=docs';
+  // All modules use the same document renderer and requirements.js at the site root.
+  // Preserve old document-mode bookmarks without mounting page-specific documents.
+  function redirectLegacyDocument() {
+    const legacy = new URLSearchParams(location.hash.slice(1));
+    if (location.hash === '#docs' || legacy.get('mode') === 'docs') {
+      location.replace(documentURL.href);
+    }
   }
-  window.addEventListener('hashchange', render);
-  render();
+  window.addEventListener('hashchange', redirectLegacyDocument);
+  redirectLegacyDocument();
 })();
